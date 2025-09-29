@@ -1,0 +1,992 @@
+<div class="col-11 mt-5 mx-auto">
+    <h4 class="fw-bold">Seafarers Roster</h4>
+    <div class="my-3">
+        <button #addSeafarer class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSeafarerModal"> <i
+                class="fa-solid fa-plus"></i> Add Seafarer</button>
+        <button class="btn btn-outline-secondary ms-3" (click)="isFilteration()"> <i class="fa-solid fa-filter"></i> Filteration</button>
+    </div>
+    @if (filterationFlag) {
+    <div class="row my-4">
+        <div class="col-lg-4">
+            <input class="form-control " type="text" placeholder="Filter By Name" [(ngModel)]="NameFilter">
+        </div>
+        <div class="col-lg-4">
+            <input class="form-control " type="text" placeholder="Filter By Nationality" [(ngModel)]="NationalityFilter">
+        </div>
+    </div>
+    }
+    <div class="mw-100 overflow-x-auto rounded-3">
+        <table class="table table-bordered table-responsive table-hover">
+            <thead class="table-active table-dark">
+                <tr>
+                    <td>EmpCode</td>
+                    <td>EmpName</td>
+                    <td>Nationality</td>
+                    <td>BirthDate</td>
+                    <td>Phone</td>
+                    <td>Mobile</td>
+                    <td>Email</td>
+                    <td>NationalId</td>
+                    <td>Age</td>
+                    <td>JobName</td>
+                    <td>EmploymentDate</td>
+                    <td>PassPortIssueDate</td>
+                    <td>VisaIssueDate</td>
+                    <td>VisaExpiryDate</td>
+                    <td>SponsorName</td>
+                    <td>InsuranceDate</td>
+                    <td>PassportExpireDate</td>
+                    <td>PassportNumber</td>
+                    <td>Active/InActive</td>
+                    <td>Edit</td>
+                    <td>Delete</td>
+                </tr>
+            </thead>
+            <tbody>
+                @for (emp of AllSeafarers | filterByName: NameFilter | filterByNationality: NationalityFilter | paginate: {itemsPerPage: pageSize, currentPage: pageIndex, totalItems:
+                totalSeafarer }; track emp.Id) {
+                <tr class="text-center">
+                    <td class="min-td-w">{{emp.EmployeeCode}}</td>
+                    <td class="min-td-w">{{emp.EmployeeName}}</td>
+                    <td class="min-td-w">{{emp.Nationality ? emp.Nationality : "N/A"}}</td>
+                    <td class="min-td-w">{{emp.BirthDate ? (emp.BirthDate | date) : "N/A"}}</td>
+                    <td class="min-td-w">{{emp.Phone}}</td>
+                    <td class="min-td-w">{{emp.Mobile}}</td>
+                    <td class="min-td-w"><a [href]="emp.Email" class="text-decoration-none">{{emp.Email}}</a></td>
+                    <td class="min-td-w">{{emp.NationalId}}</td>
+                    <td class="min-td-w">{{emp.Age ? emp.Age : "N/A"}}</td>
+                    <td class="min-td-w">{{emp.JobName}}</td>
+                    <td class="min-td-w">{{emp.EmploymentDate ? (emp.EmploymentDate | date) : "N/A"}}</td>
+                    <td class="min-td-w">{{emp.PassPortIssueDate | date}}</td>
+                    <td class="min-td-w">{{emp.VisaIssueDate ? (emp.VisaIssueDate | date) : "N/A"}}</td>
+                    <td class="min-td-w">{{emp.VisaExpiryDate ? (emp.VisaExpiryDate | date) : "N/A"}}</td>
+                    <td class="min-td-w">{{emp.SponsorName}}</td>
+                    <td class="min-td-w">{{emp.InsuranceDate ? (emp.InsuranceDate | date) : "N/A"}}</td>
+                    <td class="min-td-w">{{emp.PassportExpireDate ? (emp.PassportExpireDate | date) : "N/A"}}</td>
+                    <td class="min-td-w">{{emp.PassportNumber ? emp.PassportNumber : "N/A"}}</td>
+                    <td class="min-td-w">
+                        <span class="text-warning">
+                            <div class="form-check form-switch d-flex justify-content-center ">
+                                <input class="form-check-input" type="checkbox" [checked]="emp.Status === 1"
+                                    (change)="activeInActiveCheck(emp.Id, $event)">
+                            </div>
+                        </span>
+                    </td>
+                    <td class="min-td-w">
+                        <span class="text-primary cursor-pointer" (click)="setSeafarerDataToUpdate(emp.Id)"><i
+                                class="fas fa-edit fs-5"></i></span>
+                    </td>
+                    <td class="min-td-w">
+                        <span class="text-danger disabled"><i class="fa-solid fa-trash fs-5"></i></span>
+                    </td>
+                </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="d-flex justify-content-center align-items-center mt-4">
+        <pagination-controls (pageChange)="pageChanged($event)" [maxSize]="pageSize" [directionLinks]="true"
+            [responsive]="true" previousLabel="Previous" nextLabel="Next"></pagination-controls>
+    </div>
+</div>
+
+<!-- add seafarer modal -->
+<div class="modal fade" id="addSeafarerModal" tabindex="-1" aria-labelledby="addSeafarerModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5 fw-bold" id="addSeafarerModalLabel">Add New Seafarer</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" (click)="resetForm()"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="d-flex justify-content-between">
+                    <div class="col-3 bg-body-tertiary shadow shadow-sm p-3 overflow-y-auto" style="max-height: 70vh;">
+                        <div>
+                            <div class="nav flex-column nav-pills me-3" id="v-pills-tab" role="tablist"
+                                aria-orientation="vertical">
+                                <button class="nav-link active" [class.active]="activeTab === 'personal-data'"
+                                    (click)="setActive('personal-data')" type="button">Personal Data</button>
+                                <button class="nav-link" [class.active]="activeTab === 'contact-data'"
+                                    (click)="setActive('contact-data')" type="button">Contact Data</button>
+                                <button class="nav-link" [class.active]="activeTab === 'offshore-data'"
+                                    (click)="setActive('offshore-data')" type="button">Offshore Data</button>
+                                <button class="nav-link" [class.active]="activeTab === 'educational-qualification'"
+                                    (click)="setActive('educational-qualification');" type="button">Educational
+                                    Qualifications</button>
+                                <button class="nav-link" [class.active]="activeTab === 'certificate'"
+                                    (click)="setActive('certificate')" type="button">Certificate</button>
+                                <button class="nav-link" [class.active]="activeTab === 'certificate-license'"
+                                    (click)="setActive('certificate-license')" type="button">DP
+                                    Certificate/License</button>
+                                <button class="nav-link" [class.active]="activeTab === 'stcw-training'"
+                                    (click)="setActive('stcw-training')" type="button">Stcw/Other Training</button>
+                                <button class="nav-link" [class.active]="activeTab === 'languages'"
+                                    (click)="setActive('languages')" type="button">Languages Known</button>
+                                <button class="nav-link" [class.active]="activeTab === 'work-experience'"
+                                    (click)="setActive('work-experience')" type="button">Summary Of Work
+                                    Experience</button>
+                                <button class="nav-link" [class.active]="activeTab === 'medical-data'"
+                                    (click)="setActive('medical-data')" type="button">Health/Medical Data</button>
+                                <button class="nav-link" [class.active]="activeTab === 'payroll'"
+                                    (click)="setActive('payroll')" type="button">Payroll Details</button>
+                                <button class="nav-link" [class.active]="activeTab === 'general-info'"
+                                    (click)="setActive('general-info')" type="button">General Information</button>
+                                <button class="nav-link" [class.active]="activeTab === 'references'"
+                                    (click)="setActive('references')" type="button">References</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-9 p-3 overflow-y-auto" style="max-height: 70vh;">
+                        <div>
+                            <div class="tab-content" id="v-pills-tabContent">
+                                <form [formGroup]="seafarerData" id="seafarerForm" (ngSubmit)="submitData()">
+
+                                    <div formGroupName="entity">
+                                        <div class="tab-pane fade" [class.show]="activeTab === 'personal-data'"
+                                            [class.active]="activeTab === 'personal-data'"
+                                            [hidden]="activeTab !== 'personal-data'">
+                                            <div class="row">
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="empsSelect" class="form-label">Employee</label>
+                                                    <select class="form-select w-100" id="empsSelect"
+                                                        formControlName="EmpId">
+                                                        <option selected disabled hidden>Open this select menu</option>
+                                                        @for (emp of _SeafarerService.AllEmps; track $index) {
+                                                        <option [value]="emp.Value">{{emp.Text}}</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="nationality" class="form-label">Nationality</label>
+                                                    <input type="text" class="form-control" id="nationality" disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="dateOfBirth" class="form-label">Date Of Birth</label>
+                                                    <input type="date" class="form-control" id="dateOfBirth" disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="placeOfBirth" class="form-label">Place Of Birth</label>
+                                                    <input type="text" class="form-control" id="placeOfBirth" disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Religion" class="form-label">Religion</label>
+                                                    <input type="text" class="form-control" id="Religion" disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="MaritalStatus" class="form-label">Marital Status</label>
+                                                    <input type="text" class="form-control" id="MaritalStatus" disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="numOfChildren" class="form-label">NO. Of
+                                                        Children</label>
+                                                    <input type="number" class="form-control" id="numOfChildren"
+                                                        formControlName="NoOfChildren">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="bodyWeight" class="form-label">Body Weight (in
+                                                        Kg)</label>
+                                                    <input type="number" class="form-control" id="bodyWeight"
+                                                        formControlName="BodyWeight">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Hight" class="form-label">Hight (in cm)</label>
+                                                    <input type="number" class="form-control" id="Hight"
+                                                        formControlName="Height">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="nearestAirport" class="form-label">Nearest
+                                                        Airport</label>
+                                                    <input type="text" class="form-control" id="nearestAirport"
+                                                        formControlName="NearestAirport">
+                                                </div>
+                                                <div class="mb-3 col-12">
+                                                    <label for="Remarks" class="form-label">Remarks</label>
+                                                    <input type="text" class="form-control" id="Remarks"
+                                                        formControlName="Remarks">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="dateOfHire" class="form-label">Date of Hire</label>
+                                                    <input type="date" class="form-control" id="dateOfHire" disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="passportNumber" class="form-label">Passport
+                                                        Number</label>
+                                                    <input type="text" class="form-control" id="passportNumber"
+                                                        disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="passPortIssueDate" class="form-label">PassPort Issue
+                                                        Date</label>
+                                                    <input type="date" class="form-control" id="passPortIssueDate"
+                                                        formControlName="PassPortIssueDate">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="passPortExpiryDate" class="form-label">PassPort Expiry
+                                                        Date</label>
+                                                    <input type="date" class="form-control" id="passPortExpiryDate"
+                                                        disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Rank" class="form-label">Rank (Job Name)</label>
+                                                    <input type="text" class="form-control" id="Rank" disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="visaSponsor" class="form-label">Visa Sponsor</label>
+                                                    <select class="form-select w-100" aria-label="visa select"
+                                                        id="visaSponsor" formControlName="VisaSponsorId">
+                                                        <option selected hidden disabled>Select Visa Sponsor</option>
+                                                        @for (vendor of _SeafarerService.AllVendors; track $index)
+                                                        {
+                                                        <option [value]="vendor.Value">{{vendor.Text}}</option>
+                                                        }
+                                                    </select>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="visaUAEIdNO" class="form-label">VISA / UAE ID
+                                                        NO.</label>
+                                                    <input type="text" class="form-control" id="visaUAEIdNO"
+                                                        formControlName="VisaUAEIdNO">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="visaUAEIdISSUEDATE" class="form-label">VISA / UAE ID
+                                                        ISSUE
+                                                        DATE</label>
+                                                    <input type="date" class="form-control" id="visaUAEIdISSUEDATE"
+                                                        formControlName="VisaIssueDate">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="visaUAEIdEXPIRYDATE" class="form-label">VISA / UAE ID
+                                                        EXPIRY
+                                                        DATE</label>
+                                                    <input type="date" class="form-control" id="visaUAEIdEXPIRYDATE"
+                                                        formControlName="VisaExpiryDate">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="residenceNumber" class="form-label">Residence
+                                                        Number</label>
+                                                    <input type="text" class="form-control" id="residenceNumber"
+                                                        formControlName="ResidenceNumber">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="HealthInsuranceExpiryDate" class="form-label">Health
+                                                        Insurance Expiry Date</label>
+                                                    <input type="date" class="form-control"
+                                                        id="HealthInsuranceExpiryDate" disabled>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="tab-pane fade" [class.show]="activeTab === 'contact-data'"
+                                            [class.active]="activeTab === 'contact-data'"
+                                            [hidden]="activeTab !== 'contact-data'">
+                                            <div class="row">
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Email" class="form-label">Email</label>
+                                                    <input type="email" class="form-control" id="Email" disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="permanentAddress" class="form-label">Permanent
+                                                        Address(Home
+                                                        Country)</label>
+                                                    <input type="text" class="form-control" id="permanentAddress"
+                                                        formControlName="PermanentAddressHomeCountry">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="contactNumber" class="form-label">Contact Number(Home
+                                                        Country)</label>
+                                                    <input type="text" class="form-control" id="contactNumber"
+                                                        formControlName="ContactNumberHomeCountry">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="contactName-NumberDuringEmergencies-uae"
+                                                        class="form-label">Contact Name & Number During Emergencies
+                                                        (UAE)</label>
+                                                    <input type="text" class="form-control"
+                                                        id="contactName-NumberDuringEmergencies-uae"
+                                                        formControlName="ContactNameAndNumberDuringEmergenciesUAE">
+                                                </div>
+                                                <div class="mb-3 col-lg-12">
+                                                    <label for="contactName-NumberDuringEmergencies-home"
+                                                        class="form-label">Contact Name & Number During Emergencies
+                                                        (Home)</label>
+                                                    <input type="text" class="form-control"
+                                                        id="contactName-NumberDuringEmergencies-home"
+                                                        formControlName="ContactNameAndNumberDuringEmergenciesHome">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="tab-pane fade" [class.show]="activeTab === 'offshore-data'"
+                                            [class.active]="activeTab === 'offshore-data'"
+                                            [hidden]="activeTab !== 'offshore-data'">
+                                            <div class="row">
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="seamanBookNO" class="form-label">Seaman Book NO.</label>
+                                                    <input type="text" class="form-control" id="seamanBookNO"
+                                                        formControlName="SeamanBookNO">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="seamanIssueDate" class="form-label">Seaman Issue
+                                                        Date</label>
+                                                    <input type="date" class="form-control" id="seamanIssueDate"
+                                                        formControlName="SeamanIssueDate">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="seamanExpiryDate" class="form-label">Seaman Expiry
+                                                        Date</label>
+                                                    <input type="date" class="form-control" id="seamanExpiryDate"
+                                                        formControlName="SeamanExpiryDate">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="cicpaNO" class="form-label">Cicpa NO</label>
+                                                    <input type="text" class="form-control" id="cicpaNO"
+                                                        formControlName="CicpaNO">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="CicpaIssueDate" class="form-label">Cicpa Issue
+                                                        Date</label>
+                                                    <input type="date" class="form-control" id="CicpaIssueDate"
+                                                        formControlName="CicpaIssueDate">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="CicpaExpiryDate" class="form-label">Cicpa Expiry
+                                                        Date</label>
+                                                    <input type="date" class="form-control" id="CicpaExpiryDate"
+                                                        formControlName="CicpaExpiryDate">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="tab-pane fade" [class.show]="activeTab === 'general-info'"
+                                            [class.active]="activeTab === 'general-info'"
+                                            [hidden]="activeTab !== 'general-info'">
+                                            <div class="form-check mb-3">
+                                                <p class="m-0 p-0">Have you ever been the subject of a court of Inquiry
+                                                    or
+                                                    involved in a maritime accident</p>
+                                                <input class="form-check-input" type="checkbox" id="maritime-accident"
+                                                    formControlName="InquiryOrInvolvedMaritimeAccident"
+                                                    (change)="onCheckBoxsChange($event, 'maritime-accident-comment', 'InquiryOrInvolvedMaritimeAccidentComment')">
+                                                <label class="form-check-label" for="maritime-accident">
+                                                    If Yes, details:
+                                                </label>
+                                                <div class="mb-3">
+                                                    <textarea class="form-control" rows="3"
+                                                        formControlName="InquiryOrInvolvedMaritimeAccidentComment"
+                                                        id="maritime-accident-comment" hidden></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="form-check mb-3">
+                                                <p class="m-0 p-0">Have you ever had a professional license suspended or
+                                                    revoked</p>
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="professional-license-suspended-revoked"
+                                                    formControlName="LicenseSuspendedOrRevoked"
+                                                    (change)="onCheckBoxsChange($event, 'professional-license-suspended-revoked-comment', 'LicenseSuspendedOrRevokedComment')">
+                                                <label class="form-check-label"
+                                                    for="professional-license-suspended-revoked">
+                                                    If Yes, details:
+                                                </label>
+                                                <div class="mb-3">
+                                                    <textarea class="form-control" rows="3"
+                                                        formControlName="LicenseSuspendedOrRevokedComment"
+                                                        id="professional-license-suspended-revoked-comment"
+                                                        hidden></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="tab-pane fade" [class.show]="activeTab === 'medical-data'"
+                                            [class.active]="activeTab === 'medical-data'"
+                                            [hidden]="activeTab !== 'medical-data'">
+                                            <div class="form-check mb-3">
+                                                <p class="m-0 p-0">Have you ever signed off from a ship due to medical
+                                                    reason?</p>
+                                                <input class="form-check-input" type="checkbox"
+                                                    formControlName="SignedOffFromAShipDueToMedicalReason"
+                                                    id="signed-off-from-ship"
+                                                    (change)="onCheckBoxsChange($event, 'signed-off-from-ship-comment', 'SignedOffFromAShipDueToMedicalReasonComment')">
+                                                <label class="form-check-label" for="signed-off-from-ship">
+                                                    If Yes, details:
+                                                </label>
+                                                <div class="mb-3">
+                                                    <textarea class="form-control" rows="3"
+                                                        formControlName="SignedOffFromAShipDueToMedicalReasonComment"
+                                                        id="signed-off-from-ship-comment" hidden></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="form-check mb-3">
+                                                <p class="m-0 p-0">Have you ever undergone any medical operation(s) in
+                                                    the
+                                                    past?</p>
+                                                <input class="form-check-input" type="checkbox" id="medical-operation"
+                                                    formControlName="UndergoneAnyMdicalOperation"
+                                                    (change)="onCheckBoxsChange($event, 'medical-operation-comment', 'UndergoneAnyMdicalOperationComment')">
+                                                <label class="form-check-label" for="medical-operation">
+                                                    If Yes, details:
+                                                </label>
+                                                <div class="mb-3">
+                                                    <textarea class="form-control" rows="3"
+                                                        formControlName="UndergoneAnyMdicalOperationComment"
+                                                        id="medical-operation-comment" hidden></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="form-check mb-3">
+                                                <p class="m-0 p-0">Have you consulted a doctor during past 12 months for
+                                                    any
+                                                    illness / accident?</p>
+                                                <input class="form-check-input" type="checkbox" id="consulted-doctor"
+                                                    formControlName="DoctorConsultation"
+                                                    (change)="onCheckBoxsChange($event, 'consulted-doctor-comment', 'DoctorConsultationComment')">
+                                                <label class="form-check-label" for="consulted-doctor">
+                                                    If Yes, details:
+                                                </label>
+                                                <div class="mb-3">
+                                                    <textarea class="form-control" rows="3"
+                                                        formControlName="DoctorConsultationComment"
+                                                        id="consulted-doctor-comment" hidden></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="form-check mb-3">
+                                                <p class="m-0 p-0">Do you have any health or disability problem now?</p>
+                                                <input class="form-check-input" type="checkbox"
+                                                    id="health-disability-problem"
+                                                    formControlName="HealthOrDisabilityProblem"
+                                                    (change)="onCheckBoxsChange($event, 'health-disability-problem-comment', 'HealthOrDisabilityProblemComment')">
+                                                <label class="form-check-label" for="health-disability-problem">
+                                                    If Yes, details:
+                                                </label>
+                                                <div class="mb-3">
+                                                    <textarea class="form-control" rows="3"
+                                                        formControlName="HealthOrDisabilityProblemComment"
+                                                        id="health-disability-problem-comment" hidden></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+                                    <!-- fields doesn't exist on APIs -->
+                                    @if (activeTab === 'certificate-license') {
+                                    <div class="tab-pane fade" [class.show]="activeTab === 'certificate-license'"
+                                        [class.active]="activeTab === 'certificate-license'">
+                                        <div class="row">
+                                            <div class="mb-3 col-lg-12">
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="checkbox" id="basic"
+                                                        value="Basic" disabled>
+                                                    <label class="form-check-label" for="basic">Basic</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="checkbox" id="adv" value="ADV"
+                                                        disabled>
+                                                    <label class="form-check-label" for="adv">ADV.</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="checkbox" id="DPOperator"
+                                                        value="DP-Operator" disabled>
+                                                    <label class="form-check-label" for="DPOperator">DP Operator (FULL
+                                                        LICENCE)</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="checkbox"
+                                                        id="ETO-DP-MAINTENANCE" value="ETO-DP-MAINTENANCE" disabled>
+                                                    <label class="form-check-label" for="ETO-DP-MAINTENANCE">ETO/DP
+                                                        MAINTENANCE</label>
+                                                </div>
+                                            </div>
+                                            <div class="mb-3 col-lg-6">
+                                                <label for="Certificate" class="form-label">Certificate</label>
+                                                <input type="text" class="form-control" id="Certificate" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-6">
+                                                <label for="certificate-Number" class="form-label">Certificate
+                                                    Number</label>
+                                                <input type="text" class="form-control" id="certificate-Number"
+                                                    disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-6">
+                                                <label for="issueDate" class="form-label">Issue Date</label>
+                                                <input type="date" class="form-control" id="issueDate" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-6">
+                                                <label for="expiry-Date" class="form-label">Expiry Date</label>
+                                                <input type="date" class="form-control" id="expiry-Date" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-6">
+                                                <label for="issuing-Authority" class="form-label">Issuing
+                                                    Authority</label>
+                                                <input type="text" class="form-control" id="issuing-Authority" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-6">
+                                                <label for="Country" class="form-label">Country</label>
+                                                <input type="text" class="form-control" id="Country" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-12">
+                                                <label for="Limitations" class="form-label">Limitations</label>
+                                                <input type="text" class="form-control" id="Limitations" disabled>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    }
+
+                                    <!-- fields doesn't exist on APIs -->
+                                    @if (activeTab === 'stcw-training') {
+                                    <div class="tab-pane fade" [class.show]="activeTab === 'stcw-training'"
+                                        [class.active]="activeTab === 'stcw-training'">
+                                        <div class="row">
+                                            <div class="mb-3 col-lg-6">
+                                                <label for="name-Of-Course" class="form-label">Name Of Course</label>
+                                                <input type="text" class="form-control" id="name-Of-Course" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-6">
+                                                <label for="issueDate" class="form-label">Issue Date</label>
+                                                <input type="date" class="form-control" id="issueDate" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-6">
+                                                <label for="expiry-Date" class="form-label">Expiry Date</label>
+                                                <input type="date" class="form-control" id="expiry-Date" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-6">
+                                                <label for="Institute-Center-Country"
+                                                    class="form-label">Institute/Center/Country</label>
+                                                <input type="text" class="form-control" id="Institute-Center-Country"
+                                                    disabled>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    }
+
+                                    <!-- fields doesn't exist on APIs -->
+                                    @if (activeTab === 'payroll') {
+                                    <div class="tab-pane fade" [class.show]="activeTab === 'payroll'"
+                                        [class.active]="activeTab === 'payroll'">
+                                        <h3>Salary Elements</h3>
+                                        <div class="row">
+                                            <div class="mb-3 col-lg-4">
+                                                <label for="name-Of-Course" class="form-label">Name Of Course</label>
+                                                <input type="number" class="form-control" id="name-Of-Course" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-4">
+                                                <label for="issueDate" class="form-label">Issue Date</label>
+                                                <input type="number" class="form-control" id="issueDate" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-4">
+                                                <label for="expiry-Date" class="form-label">Expiry Date</label>
+                                                <input type="number" class="form-control" id="expiry-Date" disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-4">
+                                                <label for="Institute-Center-Country"
+                                                    class="form-label">Institute/Center/Country</label>
+                                                <input type="number" class="form-control" id="Institute-Center-Country"
+                                                    disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-4">
+                                                <label for="Institute-Center-Country"
+                                                    class="form-label">Institute/Center/Country</label>
+                                                <input type="number" class="form-control" id="Institute-Center-Country"
+                                                    disabled>
+                                            </div>
+                                            <div class="mb-3 col-lg-4">
+                                                <label for="currency-select" class="form-label">Currency</label>
+                                                <select class="form-select" id="currency-select" disabled>
+                                                    <option selected hidden disabled>Type To Filter</option>
+                                                    <option value="usd">USD</option>
+                                                    <option value="eur">EUR</option>
+                                                    <option value="aed">AED</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3 col-lg-4">
+                                                <label for="payment-way" class="form-label">Payment way</label>
+                                                <select class="form-select" id="payment-way" disabled>
+                                                    <option selected hidden disabled>Type To Filter</option>
+                                                    <option value="cash">Cash</option>
+                                                    <option value="bankTransfer">Bank Transfer</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    }
+
+
+                                    @if (activeTab === 'educational-qualification') {
+                                    <div [formGroup]="Qualification">
+                                        <div class="tab-pane fade"
+                                            [class.show]="activeTab === 'educational-qualification'"
+                                            [class.active]="activeTab === 'educational-qualification'">
+                                            <div class="row">
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="degree-Course" class="form-label">Degree /
+                                                        Course</label>
+                                                    <input type="text" class="form-control" id="degree-Course"
+                                                        formControlName="DegreeOrCourse">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="major-Subject" class="form-label">Major /
+                                                        Subject</label>
+                                                    <input type="text" class="form-control" id="major-Subject"
+                                                        formControlName="MajorOrSubject">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="issueDate" class="form-label">Issue Date</label>
+                                                    <input type="date" class="form-control" id="issueDate"
+                                                        formControlName="CourseIssueDate">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="university" class="form-label">University</label>
+                                                    <input type="text" class="form-control" id="university"
+                                                        formControlName="University">
+                                                </div>
+                                                <div class="mb-3 col-lg-12">
+                                                    <label for="Country" class="form-label">Country</label>
+                                                    <input type="text" class="form-control" id="Country"
+                                                        formControlName="Country">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-success ms-auto d-block" type="button"
+                                        (click)="addQualifications()">Add
+                                        Qualification</button>
+                                    <div class="my-5">
+                                        <p class="h5">Added Qualifications</p>
+                                        <table class="table table-responsive table-hover">
+                                            <thead class="table-active">
+                                                <tr>
+                                                    <td>Degree / Course</td>
+                                                    <td>Major / Subject</td>
+                                                    <td>Issue Date</td>
+                                                    <td>University</td>
+                                                    <td>Country</td>
+                                                    <td>Delete</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (item of seafarerData.get("Qualifications")?.value; track $index) {
+                                                <tr>
+                                                    <td>{{item.DegreeOrCourse}}</td>
+                                                    <td>{{item.MajorOrSubject}}</td>
+                                                    <td>{{item.CourseIssueDate}}</td>
+                                                    <td>{{item.University}}</td>
+                                                    <td>{{item.Country}}</td>
+                                                    <td><button class="btn btn-outline-danger"
+                                                            (click)="removeQualification($index)">Delete</button></td>
+                                                </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    }
+
+                                    @if (activeTab === 'certificate') {
+                                    <div [formGroup]="Certificate">
+                                        <div class="tab-pane fade" [class.show]="activeTab === 'certificate'"
+                                            [class.active]="activeTab === 'certificate'">
+                                            <div class="row">
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Capacity" class="form-label">Capacity</label>
+                                                    <input type="text" class="form-control" id="Capacity"
+                                                        formControlName="Capacity">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Regulation" class="form-label">Regulation</label>
+                                                    <input type="text" class="form-control" id="Regulation"
+                                                        formControlName="Regulation">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="issueDate" class="form-label">Issue Date</label>
+                                                    <input type="date" class="form-control" id="issueDate"
+                                                        formControlName="IssueDate">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="expiryDate" class="form-label">Expiry Date</label>
+                                                    <input type="date" class="form-control" id="expiryDate"
+                                                        formControlName="ExpiryDate">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="issuingAuthority" class="form-label">Issuing
+                                                        Authority</label>
+                                                    <input type="text" class="form-control" id="issuingAuthority"
+                                                        formControlName="IssuingAuthority">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="limitations" class="form-label">Limitations</label>
+                                                    <input type="text" class="form-control" id="limitations"
+                                                        formControlName="Limitations">
+                                                </div>
+                                                <div class="mb-3 col-lg-12">
+                                                    <label for="Country" class="form-label">Country</label>
+                                                    <input type="text" class="form-control" id="Country"
+                                                        formControlName="Country">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-success d-block ms-auto" type="button"
+                                        (click)="addCertificate()">Add
+                                        Certificate</button>
+                                    <div class="my-5">
+                                        <p class="h5">Added Certificates</p>
+                                        <table class="table table-responsive table-hover">
+                                            <thead class="table-active">
+                                                <tr>
+                                                    <td>Capacity</td>
+                                                    <td>Regulation</td>
+                                                    <td>Issue Date</td>
+                                                    <td>Expiry Date</td>
+                                                    <td>Issuing Authority</td>
+                                                    <td>Limitations</td>
+                                                    <td>Country</td>
+                                                    <td>Delete</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (item of seafarerData.get("Certificates")?.value; track $index) {
+                                                <tr>
+                                                    <td>{{item.Capacity}}</td>
+                                                    <td>{{item.Regulation}}</td>
+                                                    <td>{{item.IssueDate}}</td>
+                                                    <td>{{item.ExpiryDate}}</td>
+                                                    <td>{{item.IssuingAuthority}}</td>
+                                                    <td>{{item.Limitations}}</td>
+                                                    <td>{{item.Country}}</td>
+                                                    <td><button class="btn btn-outline-danger"
+                                                            (click)="removeCertificate($index)">Delete</button></td>
+                                                </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    }
+
+                                    @if (activeTab === 'languages') {
+                                    <div [formGroup]="Language">
+                                        <div class="tab-pane fade" [class.show]="activeTab === 'languages'"
+                                            [class.active]="activeTab === 'languages'">
+                                            <div class="row">
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Language" class="form-label">Language</label>
+                                                    <input type="text" class="form-control" id="Language"
+                                                        formControlName="Capacity">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Spoken" class="form-label">Spoken</label>
+                                                    <input type="text" class="form-control" id="Spoken"
+                                                        formControlName="Regulation">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Written" class="form-label">Written</label>
+                                                    <input type="text" class="form-control" id="Written"
+                                                        formControlName="Limitations">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Understood" class="form-label">Understood</label>
+                                                    <input type="text" class="form-control" id="Understood" disabled>
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="MotherTongue" class="form-label">MotherTongue</label>
+                                                    <input type="text" class="form-control" id="MotherTongue" disabled>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-success d-block ms-auto" type="button"
+                                        (click)="addLanguage()">Add
+                                        Language</button>
+                                    <div class="my-5">
+                                        <p class="h5">Added Languages</p>
+                                        <table class="table table-responsive table-hover">
+                                            <thead class="table-active">
+                                                <tr>
+                                                    <td>Language</td>
+                                                    <td>Spoken</td>
+                                                    <td>Written</td>
+                                                    <td>Delete</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (item of seafarerData.get("Languages")?.value; track $index) {
+                                                <tr>
+                                                    <td>{{item.Capacity}}</td>
+                                                    <td>{{item.Regulation}}</td>
+                                                    <td>{{item.Limitations}}</td>
+                                                    <td><button class="btn btn-outline-danger"
+                                                            (click)="removeLanguage($index)">Delete</button></td>
+                                                </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    }
+
+                                    @if (activeTab === 'work-experience') {
+                                    <div [formGroup]="WorkExperience">
+                                        <div class="tab-pane fade" [class.show]="activeTab === 'work-experience'"
+                                            [class.active]="activeTab === 'work-experience'">
+                                            <div class="row">
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Vessel-Name" class="form-label">Vessel Name</label>
+                                                    <input type="text" class="form-control" id="Vessel-Name"
+                                                        formControlName="VesselName">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Vessel-Type" class="form-label">Vessel Type</label>
+                                                    <input type="text" class="form-control" id="Vessel-Type"
+                                                        formControlName="VesselType">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Rank" class="form-label">Rank</label>
+                                                    <input type="text" class="form-control" id="Rank"
+                                                        formControlName="Rank">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="From" class="form-label">From</label>
+                                                    <input type="date" class="form-control" id="From"
+                                                        formControlName="From">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="To" class="form-label">To</label>
+                                                    <input type="date" class="form-control" id="To"
+                                                        formControlName="To">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="GRT" class="form-label">GRT</label>
+                                                    <input type="text" class="form-control" id="GRT"
+                                                        formControlName="GRT">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="BHP" class="form-label">BHP</label>
+                                                    <input type="text" class="form-control" id="BHP"
+                                                        formControlName="BHP">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Company Name" class="form-label">Company Name</label>
+                                                    <input type="text" class="form-control" id="Company Name"
+                                                        formControlName="CompanyName">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-success d-block ms-auto" type="button"
+                                        (click)="addWorkExperience()">Add
+                                        Work Experience</button>
+                                    <div class="my-5">
+                                        <p class="h5">Added Work Experiences</p>
+                                        <table class="table table-responsive table-hover">
+                                            <thead class="table-active">
+                                                <tr>
+                                                    <td>Vessel Name</td>
+                                                    <td>Vessel Type</td>
+                                                    <td>Rank</td>
+                                                    <td>From</td>
+                                                    <td>To</td>
+                                                    <td>GRT</td>
+                                                    <td>BHP</td>
+                                                    <td>Company Name</td>
+                                                    <td>Delete</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (item of seafarerData.get("WorkExperiences")?.value; track $index)
+                                                {
+                                                <tr>
+                                                    <td>{{item.VesselName}}</td>
+                                                    <td>{{item.VesselType}}</td>
+                                                    <td>{{item.Rank}}</td>
+                                                    <td>{{item.From}}</td>
+                                                    <td>{{item.To}}</td>
+                                                    <td>{{item.GRT}}</td>
+                                                    <td>{{item.BHP}}</td>
+                                                    <td>{{item.CompanyName}}</td>
+                                                    <td><button class="btn btn-outline-danger"
+                                                            (click)="removeWorkExperience($index)">Delete</button></td>
+                                                </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    }
+
+                                    @if (activeTab === 'references') {
+                                    <div [formGroup]="Reference">
+                                        <div class="tab-pane fade" [class.show]="activeTab === 'references'"
+                                            [class.active]="activeTab === 'references'">
+                                            <div class="row">
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="NameOfPerson" class="form-label">Name Of Person</label>
+                                                    <input type="text" class="form-control" id="NameOfPerson"
+                                                        formControlName="PersonName">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="CompanyName" class="form-label">Company Name</label>
+                                                    <input type="text" class="form-control" id="CompanyName"
+                                                        formControlName="CompanyName">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="Country" class="form-label">Country</label>
+                                                    <input type="text" class="form-control" id="Country"
+                                                        formControlName="Country">
+                                                </div>
+                                                <div class="mb-3 col-lg-6">
+                                                    <label for="TEL-FAXNum" class="form-label">TEL /FAX NO.</label>
+                                                    <input type="text" class="form-control" id="TEL-FAXNum"
+                                                        formControlName="Fax">
+                                                </div>
+                                                <div class="mb-3 col-lg-12">
+                                                    <label for="Email-Id" class="form-label">Email Id.</label>
+                                                    <input type="text" class="form-control" id="Email-Id"
+                                                        formControlName="EmailId">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-success d-block ms-auto" type="button"
+                                        (click)="addReference()">Add
+                                        References</button>
+                                    <div class="my-5">
+                                        <p class="h5">Added References</p>
+                                        <table class="table table-responsive table-hover">
+                                            <thead class="table-active">
+                                                <tr>
+                                                    <td>Name Of Person</td>
+                                                    <td>Company Name</td>
+                                                    <td>Country</td>
+                                                    <td>TEL /FAX NO.</td>
+                                                    <td>Email Id.</td>
+                                                    <td>Delete</td>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @for (item of seafarerData.get("References")?.value; track $index) {
+                                                <tr>
+                                                    <td>{{item.PersonName}}</td>
+                                                    <td>{{item.CompanyName}}</td>
+                                                    <td>{{item.Country}}</td>
+                                                    <td>{{item.Fax}}</td>
+                                                    <td>{{item.EmailId}}</td>
+                                                    <td><button class="btn btn-outline-danger"
+                                                            (click)="removeReference($index)">Delete</button></td>
+                                                </tr>
+                                                }
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    }
+
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" #ModalClosedBtn class="btn btn-outline-secondary"
+                    data-bs-dismiss="modal" (click)="resetForm()">Close</button>
+                <button type="submit" class="btn btn-primary" form="seafarerForm"
+                    [disabled]="seafarerData.invalid || isLoading">Save
+                    Seafarer @if (isLoading) {<i class="fa-solid fa-spinner fa-spin"></i>}</button>
+            </div>
+        </div>
+    </div>
+</div>

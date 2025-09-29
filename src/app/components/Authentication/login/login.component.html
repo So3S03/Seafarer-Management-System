@@ -1,0 +1,24 @@
+<div class="d-flex justify-content-center align-items-center w-100 vh-100 bg-body-tertiary">
+    <div class="col-lg-4 bg-body-secondary p-4 rounded-3 shadow shadow-sm">
+        <h4 class="mb-3 text-center">Seafarer Management System</h4>
+        <form [formGroup]="loginForm" (ngSubmit)="submitLogin()">
+            <div class="mb-3">
+                <label for="UserName" class="form-label">Username</label>
+                <input type="text" class="form-control" id="UserName" placeholder="Username" formControlName="username">
+                @if (loginForm.get("username")?.getError("required") && (loginForm.get("username")?.touched ||
+                loginForm.get("username")?.dirty)) {
+                <p class="alert alert-danger fw-bold">This field is required</p>
+                }
+            </div>
+            <div class="mb-3">
+                <label for="Password" class="form-label">Password</label>
+                <input type="password" class="form-control" id="Password" placeholder="Type your password" formControlName="Password">
+                @if (loginForm.get("Password")?.getError("required") && (loginForm.get("Password")?.touched ||
+                loginForm.get("Password")?.dirty)) {
+                <p class="alert alert-danger fw-bold">This field is required</p>
+                }
+            </div>
+            <button type="submit" class="btn btn-primary w-100" [disabled]="loginForm.invalid || isLoading">Login @if (isLoading) {<i class="fa-solid fa-spinner ms-2 fa-spin"></i>}</button>
+        </form>
+    </div>
+</div>

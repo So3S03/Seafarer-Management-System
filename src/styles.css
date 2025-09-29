@@ -1,1 +1,12 @@
 /* You can add global styles to this file, and also import other style files */
+.min-vh-100 {
+    min-height: 100vh !important;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.modal-xl {
+    --bs-modal-width: 1260px;
+}

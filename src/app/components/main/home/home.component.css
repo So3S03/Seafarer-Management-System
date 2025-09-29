@@ -1,0 +1,13 @@
+.m-w
+{
+    max-width: 90% !important;
+}
+
+.min-td-w{
+    min-width: 120px !important;
+}
+
+.max-h
+{
+    max-height: 90vh !important;
+}

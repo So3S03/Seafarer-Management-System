@@ -1,0 +1,22 @@
+export interface ISeafarer {
+    Id: number,
+    PassPortIssueDate: string,
+    VisaIssueDate: string,
+    VisaExpiryDate: string,
+    EmployeeName: string,
+    SponsorName: string,
+    EmployeeCode: string,
+    JobName: string,
+    Nationality: string,
+    BirthDate: string,
+    Phone: string,
+    Mobile: string,
+    Email: string,
+    NationalId: string,
+    EmploymentDate: string,
+    InsuranceDate: string,
+    PassportExpireDate: any,
+    PassportNumber: string,
+    Age: string,
+    Status: 1 | 2 | null
+}
